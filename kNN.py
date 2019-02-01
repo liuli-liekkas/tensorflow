@@ -77,3 +77,14 @@ def classify_person():
     in_arr = np.array([ff_miles, percent_tats, ice_cream])
     classifier_result = classify0((in_arr-min_vals)/ranges, norm_mat, dating_labels, 3)
     print('You will probably like this person: ', result_list[classifier_result - 1])
+
+
+def img2_vector(filename):
+    return_vect = np.zeros((1, 1024))
+    fr = open(filename)
+    for i in range(32):
+        line_str = fr.readlines()
+        for j in range(32):
+            return_vect[0, 32 * i + j] = int(line_str[j])
+    return return_vect
+
