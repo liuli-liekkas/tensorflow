@@ -1,19 +1,22 @@
-
-import os
 import os.path
 import numpy as np
 import math
-from math import radians, cos, sin, asin, sqrt
 
+#经典两点计算公式
+# def geodistance(lng_test, lat_test, lng_default, lat_default):
+#     lng1, lat1, lng2, lat2 = map(math.radians, [lng_test, lat_test, lng_default, lat_default])  # 角度转弧度
+#     d_lng = lng2 - lng1
+#     d_lat = lat2 - lat1
+#     a = math.sin(d_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(d_lng / 2) ** 2
+#     dis = 2 * math.asin(math.sqrt(a)) * 6371 * 1000
+#     print(dis)
 
-def geodistance(lng1, lat1, lng2, lat2):
-    lng1, lat1, lng2, lat2 = map(radians, [lng1, lat1, lng2, lat2])
-    dlon = lng2 - lng1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-    dis = 2 * asin(sqrt(a)) * 6371 * 1000
-    print(dis)
-
+def geodistance(lng_test, lat_test, h_test, lng_default, lat_default, h_default):
+    lng1, lat1, lng2, lat2 = map(math.radians, [lng_test, lat_test, lng_default, lat_default])
+    delta_x = h_test * math.cos(lat_test) * math.cos(lng_test) - h_test * math.cos(lat_default) * math.cos(lng_default)
+    delta_y = h_test * math.cos(lat_test) * math.sin(lng_test) - h_test * math.cos(lat_default) * math.sin(lng_default)
+    delta_z = h_test - h_default
+    dis = math.sqrt(delta_x + delta_y + delta_z)
 
 path1 = "e:/测试数据/"
 files = os.listdir(path1)
@@ -25,54 +28,41 @@ for filename in files:
         os.rename(filename, new_name)
 files = os.listdir(path1)
 os.chdir(path1)
-new_data = []
+data_gnrmc = []
+data_gngga = []
 data_test = []
-n_distance = []
-e_distance = []
-h_distance = []
+n_test = []
+e_test = []
+h_test = []
+v_test = []
+lng_default = 130.000000
+lat_default = 40.000000
+h_default = 50
 for filename in files:
     with open(filename, 'r') as file:
         data = file.readlines()
         num = len(data)
     for line in range(num):
         if data[line].split(',')[0] == '$GNRMC':
-            new_data.append(data[line])
-        for num in range(len(new_data)):
+            data_gnrmc.append(data[line])
+        if data[line].split(',')[0] == '$GNGGA':
+            data_gngga.append(data[line])
+        for num in range(len(data_gnrmc)):
             for i in range(10):
-                if new_data[num + i].split(',')[3]:
-                    data_test.append(new_data[num + i])
-            if len(data_test) == 10:
+                if data_gnrmc[num + i].split(',')[3] & data_gngga[num + i].split(',')[9]:
+                    data_test.append(data_gnrmc[num + i].split(',')[3])
+                    data_test.append(data_gnrmc[num + i].split(',')[5])
+                    data_test.append(data_gnrmc[num + i].split(',')[7])
+                    data_test.append(data_gngga[num + i].split(',')[9])
+            if len(data_test) == 40:
                 break
             else:
                 data_test = []
-            for num in range(len(data_test)):
-                n_distance.append(data_test[num].split(',')[3])
-                e_distance.append(data_test[num].split(',')[5])
-                h_distance.append(data_test[num].split(',')[7])
-            n_distance = np.array(list(map(float, n_distance)))
-            e_distance = np.array(list(map(float, e_distance)))
-            h_distance = np.array(list(map(float, h_distance)))
-            # print(n_distance)
-            # print(e_distance)
-            # print(h_distance)
-            # n_distance_true = np.zeros(10) + 3200.000000
-            # e_distance_true = np.zeros(10) + 12000.000000
-            # h_distance_true = np.zeros(10) + 0000.000000
-            # print(n_distance_true)
-            # print(e_distance_true)
-            # print(h_distance_true)
-            # n = n_distance - n_distance_true
-            # e = e_distance - e_distance_true
-            # h = h_distance - h_distance_true
-            # print(n)
-            # print(e)
-            # print(h)
-            lng1 = math.floor(e_distance.sum()/1000) + (e_distance.sum()/1000-math.floor(e_distance.sum()/1000))/0.6
-            lat1 = math.floor(n_distance.sum()/1000) + (n_distance.sum()/1000-math.floor(n_distance.sum()/1000))/0.6
-            lng2 = 130.000000
-            lat2 = 40.000000
-            if geodistance(lng1, lat1, lng2, lat2) > 100:
+            data_test = np.array(list(map(float, data_test))).reshape(4,10)
+            lng_test = math.floor(e_test.sum()/1000) + (e_test.sum()/1000-math.floor(e_test.sum()/1000))/0.6
+            lat_test = math.floor(n_test.sum()/1000) + (n_test.sum()/1000-math.floor(n_test.sum()/1000))/0.6
+            if geodistance(lng_test, lat_test, lng_default, lat_default) > 100:
                 data_test = []
                 break
             else:
-                print(geodistance(lng1, lat1, lng2, lat2))
+                print(geodistance(lng_test, lat_test, h_test, lng_default, lat_default, h_default))
