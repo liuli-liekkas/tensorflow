@@ -1,6 +1,9 @@
+# coding=utf-8
 import tkinter
 from tkinter import ttk
 from tkinter import scrolledtext
+import serial
+import time
 
 window = tkinter.Tk()
 window.title('my window')
@@ -23,29 +26,29 @@ window.geometry('800x600')
 # b.pack()
 
 
-# def reg():
-#     n1 = e1.get()
-#     n2 = e2.get()
-#     t1 = len(n1)
-#     t2 = len(n2)
-#     if n1 == '111' and n2 == '222':
-#         c['text'] = '登陆成功'
-#     else:
-#         c['text'] = '用户名或密码错误'
-#         e1.delete(0, t1)
-#         e2.delete(0, t2)
-# s1 = tkinter.Label(window, text='用户名：')
-# s1.grid(row=0, column=0, sticky='W')
-# e1 = tkinter.Entry(window, show=None)
-# e1.grid(row=0, column=1, sticky='E')
-# s2 = tkinter.Label(window, text='密码:')
-# s2.grid(row=1, column=0, sticky='W')
-# e2 = tkinter.Entry(window, show='*')
-# e2.grid(row=1, column=1, sticky='E')
-# b = tkinter.Button(text='登录', command=reg)
-# b.grid(row=2, column=1,sticky='E')
-# c = tkinter.Label(compound='left', text='')
-# c.grid(sticky='E', row=3, column=1)
+def reg():
+    n1 = e1.get()
+    n2 = e2.get()
+    t1 = len(n1)
+    t2 = len(n2)
+    if n1 == '111' and n2 == '222':
+        c['text'] = '登陆成功'
+    else:
+        c['text'] = '用户名或密码错误'
+        e1.delete(0, t1)
+        e2.delete(0, t2)
+s1 = tkinter.Label(window, text='用户名：')
+s1.grid(row=0, column=0, sticky='W')
+e1 = tkinter.Entry(window, show=None)
+e1.grid(row=0, column=1, sticky='E')
+s2 = tkinter.Label(window, text='密码:')
+s2.grid(row=1, column=0, sticky='W')
+e2 = tkinter.Entry(window, show='*')
+e2.grid(row=1, column=1, sticky='E')
+b = tkinter.Button(text='登录', command=reg)
+b.grid(row=2, column=1,sticky='E')
+c = tkinter.Label(compound='left', text='')
+c.grid(sticky='E', row=3, column=1)
 
 
 # tkinter.Label(window, text="Choose a number").grid(column=1, row=0)    # 添加一个标签，并将其列设置为1，行设置为0
@@ -105,25 +108,37 @@ window.geometry('800x600')
 # rad3 = tkinter.Radiobutton(window, text=COLOR3, variable=radVar, value=3, command=radCall)
 # rad3.grid(column=2, row=5, sticky=tkinter.W)
 #
-# # 滚动文本框
-# scrolW = 30 # 设置文本框的长度
-# scrolH = 3 # 设置文本框的高度
+# 滚动文本框
+# scrolW = 100 # 设置文本框的长度
+# scrolH = 40 # 设置文本框的高度
 # scr = tkinter.scrolledtext.ScrolledText(window, width=scrolW, height=scrolH, wrap=tkinter.WORD)     # wrap=tk.WORD   这个值表示在行的末尾如果有一个单词跨行，会将该单词放到下一行显示,比如输入hello，he在第一行的行尾,llo在第二行的行首, 这时如果wrap=tk.WORD，则表示会将 hello 这个单词挪到下一行行首显示, wrap默认的值为tk.CHAR
-# scr.grid(column=0, columnspan=3)        # columnspan 个人理解是将3列合并成一列   也可以通过 sticky=tk.W  来控制该文本框的对齐方式
+# scr.grid(column=0)        # columnspan 个人理解是将3列合并成一列   也可以通过 sticky=tk.W  来控制该文本框的对齐方式
+# serial = serial.Serial('COM5', 115200, timeout=0.1)
+# if serial.isOpen():
+#     print('successful')
+#     while True:
+#         line = serial.readline()
+#         line = line.encode('utf-8')
+#         time.sleep(0.1)
+#         scr.insert('end', line)
+#         scr.update()
+#         scr.see('end')
+# else:
+#     print('failed')
 
 
-var = tkinter.StringVar()  # 定义一个var用来将radiobutton的值和Label的值联系在一起.
-l = tkinter.Label(window, bg='yellow', width=20, text='empty')
-l.pack()
+# var = tkinter.StringVar()  # 定义一个var用来将radiobutton的值和Label的值联系在一起.
+# l = tkinter.Label(window, bg='yellow', width=20, text='empty')
+# l.pack()
 
-def print_selection():
-    l.config(text='you have selected ' + var.get())
-
-r1 = tkinter.Radiobutton(window, text='Option A', variable=var, value='A', command=print_selection)
-r1.pack()
-r2 = tkinter.Radiobutton(window, text='Option B', variable=var, value='B', command=print_selection)
-r2.pack()
-r3 = tkinter.Radiobutton(window, text='Option C', variable=var, value='C', command=print_selection)
-r3.pack()
+# def print_selection():
+#     l.config(text='you have selected ' + var.get())
+#
+# r1 = tkinter.Radiobutton(window, text='Option A', variable=var, value='A', command=print_selection)
+# r1.pack()
+# r2 = tkinter.Radiobutton(window, text='Option B', variable=var, value='B', command=print_selection)
+# r2.pack()
+# r3 = tkinter.Radiobutton(window, text='Option C', variable=var, value='C', command=print_selection)
+# r3.pack()
 
 window.mainloop()
