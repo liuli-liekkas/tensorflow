@@ -1,27 +1,29 @@
 # coding=utf-8
-from serial import serialwin32
+import serial
 import time
 import math
 import numpy as np
 import tkinter
 from tkinter import scrolledtext
 from tkinter import ttk
-
+from threading import Thread
+import _tkinter
 
 
 class Application:
     def __init__(self):
-        self.serial = serialwin32.Serial('COM5', 115200, timeout=0.1)
+        # self.serial = serial.Serial('COM5', 115200, timeout=0.1)
         self.window = tkinter.Tk()
         self.set_window(self.window)
         self.reset_port()
         self.scrolled_window()
         self.test_window()
-        self.test_main()
+        # self.test_main()
 
         self.window.mainloop()
 
-    def set_window(self, window):
+    @staticmethod
+    def set_window(window):
         window.title("导航测试系统")
         window.geometry('1200x800')
 
@@ -30,17 +32,19 @@ class Application:
         global e2
         global b1
         global b2
-        s1 = tkinter.Label(self.window, text='指令1：')
+        monty = ttk.LabelFrame(self.window, text=" 指令窗口 ")
+        monty.grid(column=0, row=0, padx=10, pady=10, sticky='W')
+        s1 = tkinter.Label(monty, text='指令1：')
         s1.grid(row=0, column=0, sticky='W')
-        e1 = tkinter.Entry(self.window, show=None)
+        e1 = tkinter.Entry(monty, show=None)
         e1.grid(row=0, column=1, sticky='E')
-        b1 = tkinter.Button(self.window, text='发送', command=self.send_port1)
+        b1 = tkinter.Button(monty, text='发送', command=self.send_port1)
         b1.grid(row=0, column=2, sticky='E')
-        s2 = tkinter.Label(self.window, text='指令2:')
+        s2 = tkinter.Label(monty, text='指令2:')
         s2.grid(row=1, column=0, sticky='W')
-        e2 = tkinter.Entry(self.window,show=None)
+        e2 = tkinter.Entry(monty, show=None)
         e2.grid(row=1, column=1, sticky='E')
-        b2 = tkinter.Button(self.window, text='发送', command=self.send_port2)
+        b2 = tkinter.Button(monty, text='发送', command=self.send_port2)
         b2.grid(row=1, column=2, sticky='E')
 
         # hot_set = '$reset,1,2'
@@ -56,16 +60,20 @@ class Application:
     def scrolled_window(self):
         global scr_show
         scrolled_W = 80
-        scrolled_H = 40
-        scr_show = tkinter.scrolledtext.ScrolledText(self.window, width=scrolled_W, height=scrolled_H, wrap=tkinter.WORD)
-        scr_show.grid(column=0, columnspan=100)
+        scrolled_H = 20
+        monty = ttk.LabelFrame(self.window, text=" 报文数据 ")
+        monty.grid(row=1, column=0, padx=10, pady=10)
+        scr_show = tkinter.scrolledtext.ScrolledText(monty, width=scrolled_W, height=scrolled_H, wrap=tkinter.WORD)
+        scr_show.grid(column=0, columnspan=3)
 
     def test_window(self):
         global scr_test
         scrolled_W = 80
         scrolled_H = 10
-        scr_test = tkinter.scrolledtext.ScrolledText(self.window, width=scrolled_W, height=scrolled_H, wrap=tkinter.WORD)
-        scr_test.grid(column=0, columnspan=500)
+        monty = ttk.LabelFrame(self.window, text=" 测试结果 ")
+        monty.grid(row=2, column=0, padx=10, pady=10)
+        scr_test = tkinter.scrolledtext.ScrolledText(monty, width=scrolled_W, height=scrolled_H, wrap=tkinter.WORD)
+        scr_test.grid(column=0, columnspan=3)
 
     def get_data(self):
         line = self.serial.readline()
@@ -75,46 +83,180 @@ class Application:
         scr_show.see('end')
         return line
 
+    # 三点计算公式
+    def geo_distance_three(self, lng_test, lat_test, h_test, lng_default, lat_default, h_default):
+        lng_test, lat_test, lng_default, lat_default = map(math.radians, [lng_test, lat_test, lng_default, lat_default])
+        delta_x = h_test * math.cos(lat_test) * math.cos(lng_test) - h_test * math.cos(lat_default) * math.cos(
+            lng_default)
+        delta_y = h_test * math.cos(lat_test) * math.sin(lng_test) - h_test * math.cos(lat_default) * math.sin(
+            lng_default)
+        delta_z = h_test - h_default
+        dis = math.sqrt(delta_x + delta_y + delta_z)
+        return dis
+
+    # 经典两点计算公式
+    def geo_distance_two(self, lat_test, lng_test, lat_default, lng_default):
+        lat1, lng1, lat2, lng2 = map(math.radians, [lat_test, lng_test, lat_default, lng_default])  # 角度转弧度
+        d_lat = lat2 - lat1
+        d_lng = lng2 - lng1
+        a = math.sin(d_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(d_lng / 2) ** 2
+        dis = 2 * math.asin(math.sqrt(a)) * 6371 * 1000
+        return dis
+
     def test_main(self):
         utc_time = False
         location = False
         data_test = []
         while True:
             time.sleep(0.01)
-            if self.get_data():
-                if self.get_data().split(',')[0] == e1.get():
+            line = self.get_data()
+            if line:
+                if line.split(',')[0] == e1.get():
                     scr_test.insert('end', '已发送指令1:' + e1.get())
                     scr_test.update()
-                    scr_show.see('end')
+                    scr_test.see('end')
                     continue
-                elif self.get_data().split(',')[0] == e2.get():
+                elif line.split(',')[0] == e2.get():
                     scr_test.insert('end', '已发送指令2:' + e2.get())
                     scr_test.update()
-                    scr_show.see('end')
+                    scr_test.see('end')
                     continue
-                elif self.get_data().split(',')[0] == '$ACKOK':
-                    print("系统已经重启完毕，开始计时……")
+                elif line.split(',')[0] == '$ACKOK':
+                    scr_test.insert('end', "系统已经重启完毕，开始计时……")
+                    scr_test.update()
+                    scr_test.see('end')
                     time_start = time.time()
                     continue
-                if self.get_data().split(',')[0] == '$GNRMC':
-                    if not utc_time and self.get_data().split(',')[1] and not(self.get_data().split(',')[3]):
-                        print("系统已经成功获得UTC时间，还没开始定位……")
+                elif line.split(',')[0] == '$GNRMC':
+                    if not utc_time and line.split(',')[1] and not(line.split(',')[3]):
+                        scr_test.insert('end', "系统已经成功获得UTC时间，还没开始定位……")
+                        scr_test.update()
+                        scr_test.see('end')
                         utc_time = True
-                    if self.get_data().split(',')[3]:
+                    if line.split(',')[3]:
                         if not location:
                             time_delta = time.time() - time_start
-                            print("系统开始定位,首次捕获时间为：", time_delta)  # 计算捕获时间
+                            scr_test.insert('end, '"系统开始定位,首次捕获时间为：" + time_delta)  # 计算捕获时间
+                            scr_test.update()
+                            scr_test.see('end')
                             location = True
                         data_test.append(self.get_data().split(',')[3])  # 提取纬度信息
                         data_test.append(self.get_data().split(',')[5])  # 提取精度信息
                         data_test.append(self.get_data().split(',')[7])  # 提取速度信息
-                if self.get_data().split(',')[0] == '$GNGGA':
-                    if self.get_data().split(',')[3]:
-                        data_test.append(self.get_data().split(',')[9])  # 提取高度信息
+                elif line.split(',')[0] == '$GNGGA':
+                    if line.split(',')[3]:
+                        data_test.append(line.split(',')[9])  # 提取高度信息
                         if len(data_test) == 40:
                             data_test = np.array(list(map(float, data_test))).reshape(10, 4)  # 转换成矩阵
-                            print(data_test.sum(axis=0) / 10)  # 矩阵每列求和
-                            break
+                            data_test = data_test.sum(axis=0) / 10  # 矩阵每列求和
+                            scr_test.insert('end', data_test)
+                            scr_test.update()
+                            scr_test.see('end')
+                            lat_default = 30
+                            lng_default = 100
+                            geo_distance = self.geo_distance_two(data_test[0], data_test[1], lat_default, lng_default)
+                            if geo_distance > 100 or data_test[3] > 100:
+                                np.delete(data_test, 0, axis=1)
+                                scr_test.insert('end', '定位无效，误差为' + geo_distance + '米')
+                                scr_test.update()
+                                scr_test.see('end')
+                            elif geo_distance < 100 and data_test[3] < 100:
+                                scr_test.insert('end', '定位有效，误差为' + geo_distance + '米')
+                                scr_test.update()
+                                scr_test.see('end')
+                                break
+
+class Clock:
+    def __init__(self, master, x, y, width, height, radius):
+        # :param master: 父窗口
+        # :param x: 时钟中心点的x坐标
+        # :param y: 时钟中心点的y坐标
+        # :param width: 画布的宽度
+        # :param height: 画布的高度
+        # :param radius: 时钟钟盘的半径
+        self.centerX = x
+        self.centerY = y
+        self.radius = radius
+        self.canvas = tkinter.Canvas(master, width=width, height=height) # 画布
+        self.canvas.pack()
+        self.canvas.create_oval(
+          x - radius,
+          y - radius,
+          x + radius,
+          y + radius) # 画钟框
+        self.id_lists = []
+        self.hourHandRadius = self.radius * 1.0 / 4  # 指针长度
+        self.minHandRadius = self.radius * 2.0 / 3  # 分针长度
+        self.secHandRadius = self.radius * 4.0 / 5  # 秒针长度
+        self.timeVar = tkinter.StringVar()
+        # self.timeVar.set('')
+        self.timeLabel = tkinter.Label(self.canvas.master, textvariable=self.timeVar)
+        self.timeLabel.pack(side=tkinter.BOTTOM)
+        #self.canvas.master.protocol('WM_DELETE_WINDOW', self.canvas.master.destroy)
+
+    def __del__(self):
+        self._deleteItems(self.id_lists)
+
+      # 绘制时钟钟盘
+    def drawClockDial(self):
+        # 绘制钟盘上的数字1-12
+        r = self.radius - 15
+        for i in range(1, 13):
+            rad = 2 * math.pi / 12 * i
+            x = self.centerX + math.sin(rad) * r
+            y = self.centerY - math.cos(rad) * r
+            id = self.canvas.create_text(x, y, text=str(i))
+            self.id_lists.append(id)
+        # 绘制钟盘上的刻度
+        r1 = self.radius - 5
+        r2 = self.radius
+        for i in range(1, 61):
+            rad = 2 * math.pi / 60 * i
+            x1, y1 = self._getPosByRadAndRadius(rad, r1)
+            x2, y2 = self._getPosByRadAndRadius(rad, r2)
+            id = self.canvas.create_line(x1, y1, x2, y2)
+            self.id_lists.append(id)
+        # 显示时间
+    def showTime(self, tm):
+        hour = tm.tm_hour % 12
+        min = tm.tm_min
+        sec = tm.tm_sec
+        sec_rad = 2 * math.pi / 60 * sec
+        min_rad = 2 * math.pi / 60 * (min + sec / 60.0)
+        hour_rad = 2 * math.pi / 12 * (hour + min / 60.0)
+        timeStr = '当前时间: %d-%02d-%02d %02d:%02d:%02d' % (tm.tm_year, tm.tm_mon, tm.tm_mday, hour, min, sec)
+        self.timeVar.set(timeStr)
+        hour_id = self._drawLine(hour_rad, self.hourHandRadius, 6)
+        min_id = self._drawLine(min_rad, self.minHandRadius, 4)
+        sec_id = self._drawLine(sec_rad, self.secHandRadius, 3)
+        return (hour_id, min_id, sec_id)
+    def run(self):
+        def _run():
+            while True:
+                tm = time.localtime()
+                id_lists = self.showTime(tm)
+                self.canvas.master.update()
+                time.sleep(1)
+                self._deleteItems(id_lists)
+                thrd = Thread(target=_run) # 创建新的线程
+                thrd.run() # 启动线程
+
+    def _drawLine(self, rad, radius, width):
+        x, y = self._getPosByRadAndRadius(rad, radius)
+        id = self.canvas.create_line(self.centerX, self.centerY, x, y, width=width)
+        return id
+
+    def _getPosByRadAndRadius(self, rad, radius):
+        x = self.centerX + radius * math.sin(rad)
+        y = self.centerY - radius * math.cos(rad)
+        return (x, y)
+
+    def _deleteItems(self, id_lists):
+        for id in id_lists:
+            try:
+                self.canvas.delete(id)
+            except BaseException:
+                pass
 
 
 # def get_data(self):
