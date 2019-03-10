@@ -3,23 +3,23 @@ import numpy as np
 import math
 
 
-# 经典两点计算公式
-# def geodistance(lng_test, lat_test, lng_default, lat_default):
-#     lng1, lat1, lng2, lat2 = map(math.radians, [lng_test, lat_test, lng_default, lat_default])  # 角度转弧度
-#     d_lng = lng2 - lng1
-#     d_lat = lat2 - lat1
-#     a = math.sin(d_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(d_lng / 2) ** 2
-#     dis = 2 * math.asin(math.sqrt(a)) * 6371 * 1000
-#     print(dis)
+经典两点计算公式
+def geodistance(lng_test, lat_test, lng_default, lat_default):
+    lng1, lat1, lng2, lat2 = map(math.radians, [lng_test, lat_test, lng_default, lat_default])  # 角度转弧度
+    d_lng = lng2 - lng1
+    d_lat = lat2 - lat1
+    a = math.sin(d_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(d_lng / 2) ** 2
+    dis = 2 * math.asin(math.sqrt(a)) * 6371 * 1000
+    print(dis)
 
 
-def geodistance(lng_test, lat_test, h_test, lng_default, lat_default, h_default):
-    lng_test, lat_test, lng_default, lat_default = map(math.radians, [lng_test, lat_test, lng_default, lat_default])
-    delta_x = h_test * math.cos(lat_test) * math.cos(lng_test) - h_test * math.cos(lat_default) * math.cos(lng_default)
-    delta_y = h_test * math.cos(lat_test) * math.sin(lng_test) - h_test * math.cos(lat_default) * math.sin(lng_default)
-    delta_z = h_test - h_default
-    dis = math.sqrt(delta_x + delta_y + delta_z)
-    return dis
+# def geodistance(lng_test, lat_test, h_test, lng_default, lat_default, h_default):
+#     lng_test, lat_test, lng_default, lat_default = map(math.radians, [lng_test, lat_test, lng_default, lat_default])
+#     delta_x = h_test * math.cos(lat_test) * math.cos(lng_test) - h_test * math.cos(lat_default) * math.cos(lng_default)
+#     delta_y = h_test * math.cos(lat_test) * math.sin(lng_test) - h_test * math.cos(lat_default) * math.sin(lng_default)
+#     delta_z = h_test - h_default
+#     dis = math.sqrt(delta_x + delta_y + delta_z)
+#     return dis
 
 
 path1 = "e:/测试数据/"
