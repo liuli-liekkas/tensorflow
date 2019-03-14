@@ -5,7 +5,6 @@ import math
 import numpy as np
 import tkinter
 from itertools import chain
-from tkinter import scrolledtext
 from tkinter import ttk
 import matplotlib.font_manager
 import matplotlib.pyplot as plt
@@ -27,7 +26,6 @@ class GUI:
         self.num = 0
         self.first_label = set()
 
-        # a frame contains COM's information, and start/stop button
         frame_COMinf = tkinter.Frame(window)
         frame_COMinf.grid(row=1, column=1)
 
@@ -181,7 +179,7 @@ class GUI:
         matplotlib.rcParams['font.family'] = 'sans-serif'
         matplotlib.rcParams['axes.unicode_minus'] = False
         value = []
-        x_list = [1,2,3,4,5,6,7,8,9,10]
+        x_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         value.append(float(self.entry_test_value_1.get()))
         value.append(float(self.entry_test_value_2.get()))
         value.append(float(self.entry_test_value_3.get()))
@@ -326,8 +324,7 @@ class GUI:
                             del self.data_test[0:5]
                             geo_distance = str(geo_distance)
                             high_distance = str(high_distance)
-                            self.OutputTest.insert(tkinter.END, "定位无效，水平误差为：" + geo_distance + '米' + '\n'
-                                                   + '定位无效，垂直误差为：' + high_distance + '米' + '\n' + '\n')
+                            self.OutputTest.insert(tkinter.END, "定位无效，水平误差为：" + geo_distance + '米' + '\n' + '定位无效，垂直误差为：' + high_distance + '米' + '\n' + '\n')
                             self.OutputTest.see(tkinter.END)
                             self.OutputTest.update()
                             continue
@@ -338,19 +335,16 @@ class GUI:
                             final_time_get_target = self.data_test[0, -1] - self.time_start
                             final_time_get_target = str(final_time_get_target)
                             self.data_test = list(chain(*self.data_test))
-                            self.OutputTest.insert(tkinter.END, '定位有效，水平误差为：' + geo_distance + '米' + '\n'
-                                                   + '定位有效，垂直误差为：' + high_distance + '米' + '\n'
-                                                   + '定位有效，首次定位时间为：' + final_time_get_target + '秒' + '\n' + '\n')
+                            self.OutputTest.insert(tkinter.END, '定位有效，水平误差为：' + geo_distance + '米' + '\n' + '定位有效，垂直误差为：' + high_distance + '米' + '\n'  + '定位有效，首次定位时间为：' + final_time_get_target + '秒' + '\n' + '\n')
                             self.OutputTest.see(tkinter.END)
                             self.OutputTest.update()
 
     # 三点计算公式
-    def geo_distance_three(self, lng_test, lat_test, h_test, lng_default, lat_default, h_default):
+    @staticmethod
+    def geo_distance_three(lng_test, lat_test, h_test, lng_default, lat_default, h_default):
         lng_test, lat_test, lng_default, lat_default = map(math.radians, [lng_test, lat_test, lng_default, lat_default])
-        delta_x = h_test * math.cos(lat_test) * math.cos(lng_test) - h_test * math.cos(lat_default) * math.cos(
-            lng_default)
-        delta_y = h_test * math.cos(lat_test) * math.sin(lng_test) - h_test * math.cos(lat_default) * math.sin(
-            lng_default)
+        delta_x = h_test * math.cos(lat_test) * math.cos(lng_test) - h_test * math.cos(lat_default) * math.cos(lng_default)
+        delta_y = h_test * math.cos(lat_test) * math.sin(lng_test) - h_test * math.cos(lat_default) * math.sin(lng_default)
         delta_z = h_test - h_default
         dis = math.sqrt(delta_x + delta_y + delta_z)
         return dis
