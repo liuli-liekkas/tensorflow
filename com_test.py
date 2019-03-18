@@ -253,15 +253,15 @@ class GUI:
                     self.OutputText.update()
                 except :
                     continue
-                # if line.split(',')[0] == '$ACKOK':
-                #     self.OutputTest.insert(tkinter.END, "系统已经重启完毕，开始计时……" + '\n')
-                #     data_test = []
-                #     utc_time = False
-                #     location = False
-                #     get_target = False
-                #     time_start = time.time()
-                #     lock_target = False
-                #     continue
+                if line.split(',')[0] == '$ACKOK':
+                    self.OutputTest.insert(tkinter.END, "系统已经重启完毕，开始计时……" + '\n')
+                    self.data_test = []
+                    self.utc_time = False
+                    self.location = False
+                    self.get_target = False
+                    self.time_start = time.time()
+                    self.lock_target = False
+                    continue
                 if line.split(',')[0] == '$GNRMC':
                     self.OutputText.insert(tkinter.END, '\n')
                     if not self.utc_time and line.split(',')[1] != '' and (line.split(',')[3]) == '':
@@ -311,33 +311,36 @@ class GUI:
                     self.data_test.append(line.split(',')[9])  # 提取高度信息
                     self.data_test.append(time_get_target)  # 提取定位时间
                     if len(self.data_test) == 50 and not self.lock_target:
-                        self.data_test = np.array(list(map(float, self.data_test))).reshape(10, 5)  # 转换成矩阵
-                        data_test_detail = self.data_test[:, 0:4].sum(axis=0) / 10  # 矩阵每列求和
-                        lat_default = 31.283508816666668
-                        lng_default = 121.18034377500001
-                        data_test_detail[0] = math.floor(data_test_detail[0] / 100) + (data_test_detail[0] / 100 - math.floor(data_test_detail[0] / 100)) / 0.6
-                        data_test_detail[1] = math.floor(data_test_detail[1] / 100) + (data_test_detail[1] / 100 - math.floor(data_test_detail[1] / 100)) / 0.6
-                        high_distance = data_test_detail[3]
-                        geo_distance = self.geo_distance_two(data_test_detail[0], data_test_detail[1], lat_default, lng_default)
-                        if geo_distance > 100 or high_distance > 100:
-                            self.data_test = list(chain(*self.data_test))
-                            del self.data_test[0:5]
-                            geo_distance = str(geo_distance)
-                            high_distance = str(high_distance)
-                            self.OutputTest.insert(tkinter.END, "定位无效，水平误差为：" + geo_distance + '米' + '\n' + '定位无效，垂直误差为：' + high_distance + '米' + '\n' + '\n')
-                            self.OutputTest.see(tkinter.END)
-                            self.OutputTest.update()
-                            continue
-                        elif geo_distance < 100 and high_distance < 100:
-                            self.lock_target = True
-                            geo_distance = str(geo_distance)
-                            high_distance = str(high_distance)
-                            final_time_get_target = self.data_test[0, -1] - self.time_start
-                            final_time_get_target = str(final_time_get_target)
-                            self.data_test = list(chain(*self.data_test))
-                            self.OutputTest.insert(tkinter.END, '定位有效，水平误差为：' + geo_distance + '米' + '\n' + '定位有效，垂直误差为：' + high_distance + '米' + '\n'  + '定位有效，首次定位时间为：' + final_time_get_target + '秒' + '\n' + '\n')
-                            self.OutputTest.see(tkinter.END)
-                            self.OutputTest.update()
+                        print(self.data_test)
+                        self.data_test = list(map(float, self.data_test))  # 转换成矩阵
+                        for i in range(10):
+                            data_test_detail = [self.data_test[5*i], self.data_test[5*i+1], self.data_test[5*i+3]]
+                            lat_default = 31.283508816666668
+                            lng_default = 121.18034377500001
+                            # lat_default = 45
+                            # lng_default = 120
+                            data_test_detail[0] = math.floor(data_test_detail[0] / 100) + (data_test_detail[0] / 100 - math.floor(data_test_detail[0] / 100)) / 0.6
+                            data_test_detail[1] = math.floor(data_test_detail[1] / 100) + (data_test_detail[1] / 100 - math.floor(data_test_detail[1] / 100)) / 0.6
+                            high_distance = data_test_detail[2]
+                            geo_distance = self.geo_distance_two(data_test_detail[0], data_test_detail[1], lat_default, lng_default)
+                            if geo_distance > 100 or high_distance > 100:
+                                self.data_test = list(chain(*self.data_test))
+                                del self.data_test[0:5*(i+1)]
+                                geo_distance = str(geo_distance)
+                                high_distance = str(high_distance)
+                                self.OutputTest.insert(tkinter.END, "定位无效，水平误差为：" + geo_distance + '米' + '\n' + '定位无效，垂直误差为：' + high_distance + '米' + '\n' + '\n')
+                                self.OutputTest.see(tkinter.END)
+                                self.OutputTest.update()
+                                break
+                            elif geo_distance < 100 and high_distance < 100:
+                                self.lock_target = True
+                                geo_distance = str(geo_distance)
+                                high_distance = str(high_distance)
+                                final_time_get_target = self.data_test[4] - self.time_start
+                                final_time_get_target = str(final_time_get_target)
+                                self.OutputTest.insert(tkinter.END, '定位有效，水平误差为：' + geo_distance + '米' + '\n' + '定位有效，垂直误差为：' + high_distance + '米' + '\n'  + '定位有效，首次定位时间为：' + final_time_get_target + '秒' + '\n' + '\n')
+                                self.OutputTest.see(tkinter.END)
+                                self.OutputTest.update()
 
     # 三点计算公式
     @staticmethod
