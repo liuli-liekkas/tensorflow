@@ -31,6 +31,7 @@ class GUI:
         self.ReadUARTThread.start()
 
         # self.PaintResult = threading.Thread(target=self.paint)
+        # self.PaintResult.start()
 
         labelCOM = tkinter.Label(frame_COMinf, text="COMx: ")
         self.COM = tkinter.StringVar(value="COM7")
@@ -195,6 +196,8 @@ class GUI:
         plt.xlabel(self.entry_hor_axis.get())
         plt.ylabel(self.entry_ver_axis.get())
         plt.title(self.entry_title.get())
+        for a, b in zip(x_list, value):
+            plt.text(a, b, b, ha='center', va='bottom', fontsize=15)
         plt.show()
 
     def processButtonSS(self):
@@ -273,7 +276,7 @@ class GUI:
                         self.OutputTest.see(tkinter.END)
                         self.OutputTest.update()
                         continue
-                    elif line.split(',')[1] != '' and line.split(',')[3] == '':
+                    elif self.utc_time and line.split(',')[1] != '' and line.split(',')[3] == '':
                         if self.get_target:
                             self.data_test = []
                             self.time_start = time.time()
@@ -282,7 +285,7 @@ class GUI:
                             self.OutputTest.insert(tkinter.END, "系统丢失目标，开始重新定位……" + '\n')
                             self.OutputTest.see(tkinter.END)
                             self.OutputTest.update()
-                    elif line.split(',')[1] == '' and line.split(',')[3] == '':
+                    elif self.utc_time and line.split(',')[1] == '' and line.split(',')[3] == '':
                         if self.get_target:
                             self.data_test = []
                             self.time_start = time.time()
@@ -292,14 +295,14 @@ class GUI:
                             self.OutputTest.insert(tkinter.END, "系统丢失信号，开始搜索信号……" + '\n')
                             self.OutputTest.see(tkinter.END)
                             self.OutputTest.update()
-                    elif line.split(',')[3] != '' and line.split(',')[5] != '' and line.split(',')[7] != '':
+                    elif self.utc_time and line.split(',')[3] != '' and line.split(',')[5] != '' and line.split(',')[7] != '':
                         if not self.location:
                             self.location = True
                         self.data_test.append(line.split(',')[3])  # 提取纬度信息
                         self.data_test.append(line.split(',')[5])  # 提取精度信息
                         self.data_test.append(line.split(',')[7])  # 提取速度信息
                         continue
-                elif line.split(',')[0] == '$GNGGA' and line.split(',')[3] != '':
+                elif self.utc_time and line.split(',')[0] == '$GNGGA' and line.split(',')[3] != '':
                     if not self.get_target:
                         self.get_target = True
                         self.OutputTest.insert(tkinter.END, "系统开始定位" + '\n')  # 计算捕获时间
