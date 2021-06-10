@@ -9,6 +9,7 @@ from tkinter import ttk
 import matplotlib.font_manager
 import matplotlib.pyplot as plt
 import threading
+import test
 
 
 class GUI:
